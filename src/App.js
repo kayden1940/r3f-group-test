@@ -8,8 +8,14 @@ const useStore = create((set) => ({ target: null, setTarget: (target) => set({ t
 
 const Box = forwardRef((props, ref) => {
   const { scene } = useThree()
+
   useEffect(() => {
     console.log('scene', scene)
+
+    return () => {
+      // console.log('scene', scene)
+      // scene.add(ref)
+    }
   }, [scene])
 
   const setTarget = useStore((state) => state.setTarget)
@@ -39,43 +45,43 @@ const Group = forwardRef((props, ref) => {
 
 export default function App() {
   const { target, setTarget } = useStore()
-  const [Comps, setComps] = useState([])
+  // const [Comps, setComps] = useState([])
+  const [Boxes, setBoxes] = useState([])
+  const [Selected, setSelected] = useState([])
   const groupRef = useRef()
   const boxRefs = useRef([])
 
-  useEffect(() => {
-    setComps([<Group ref={groupRef} key="Group" />])
-  }, [])
-
-  useEffect(() => {
-    console.log('Comps', Comps)
-  }, [Comps])
-
   // useEffect(() => {
-  //   console.log('boxRefs', boxRefs.current)
+  //   console.log('boxRefs.current', boxRefs.current)
   // }, [boxRefs.current])
 
-  const { mode } = useControls({
-    mode: { value: 'translate', options: ['translate', 'rotate', 'scale'] },
-    addBox: button((get) => {
-      const boxRef = createRef()
-      boxRefs.current.push(boxRef)
-      console.log('boxRefs.current', boxRefs.current)
-      setComps((prev) => [...prev, <Box ref={boxRef} />])
-    }),
-    attachAllBoxToGroup: button((get) => {
-      boxRefs.current.forEach((boxRef) => {
-        groupRef.current.attach(boxRef)
-      })
-    }),
-    detachAllBoxFromGroup: button((get) => {
-    })
-  })
+  useEffect(() => {
+    console.log('Selected', Selected)
+    console.log('boxRefs.current', boxRefs.current)
+  }, [Selected])
+
+  const { mode } = useControls(
+    {
+      // mode: { value: 'translate', options: ['translate', 'rotate', 'scale'] },
+      addBox: button((get) => {
+        const boxRef = createRef()
+        setBoxes((prev) => [...prev, <Box ref={boxRef} />])
+        boxRefs.current.push(boxRef)
+      }),
+      attachAllBoxToGroup: button((get) => {
+        setSelected([...Boxes])
+        setBoxes([])
+      }),
+      detachAllBoxFromGroup: button((get) => {})
+    },
+    []
+  )
 
   return (
     <Canvas dpr={[1, 2]} onPointerMissed={() => setTarget(null)}>
-      {Comps}
-      {target && <TransformControls object={target} mode={mode} />}
+      <Group ref={groupRef}>{Selected}</Group>
+      {Boxes}
+      {/* {target && <TransformControls object={target} mode={mode} />} */}
       <OrbitControls makeDefault />
     </Canvas>
   )
