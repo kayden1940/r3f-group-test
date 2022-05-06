@@ -7,16 +7,16 @@ import create from 'zustand'
 const useStore = create((set) => ({ target: null, setTarget: (target) => set({ target }) }))
 
 const Box = forwardRef((props, ref) => {
-  const { scene } = useThree()
+  // useEffect(() => {
+  //   console.log('scene', scene)
 
-  useEffect(() => {
-    console.log('scene', scene)
+  //   return () => {
+  //     // console.log('scene', scene)
+  //     // scene.add(ref)
+  //   }
+  // }, [scene])
 
-    return () => {
-      // console.log('scene', scene)
-      // scene.add(ref)
-    }
-  }, [scene])
+  // const boxRef = useRef()
 
   const setTarget = useStore((state) => state.setTarget)
   const [hovered, setHovered] = useState(false)
@@ -43,30 +43,18 @@ const Group = forwardRef((props, ref) => {
   return <group ref={ref}></group>
 })
 
-export default function App() {
-  const { target, setTarget } = useStore()
-  // const [Comps, setComps] = useState([])
-  const [Boxes, setBoxes] = useState([])
-  const [Selected, setSelected] = useState([])
+const Edit = () => {
+  const { scene } = useThree()
   const groupRef = useRef()
   const boxRefs = useRef([])
-
-  // useEffect(() => {
-  //   console.log('boxRefs.current', boxRefs.current)
-  // }, [boxRefs.current])
-
-  useEffect(() => {
-    console.log('Selected', Selected)
-    console.log('boxRefs.current', boxRefs.current)
-  }, [Selected])
-
+  const [Boxes, setBoxes] = useState([])
+  const [Selected, setSelected] = useState([])
   const { mode } = useControls(
     {
-      // mode: { value: 'translate', options: ['translate', 'rotate', 'scale'] },
       addBox: button((get) => {
         const boxRef = createRef()
-        setBoxes((prev) => [...prev, <Box ref={boxRef} />])
         boxRefs.current.push(boxRef)
+        setBoxes((prev) => [...prev, <Box ref={boxRef} />])
       }),
       attachAllBoxToGroup: button((get) => {
         setSelected([...Boxes])
@@ -74,13 +62,32 @@ export default function App() {
       }),
       detachAllBoxFromGroup: button((get) => {})
     },
-    []
+    [Boxes, Selected]
   )
+  
+  useEffect(() => {
+    console.log('Selected', Selected)
+    console.log('scene', scene.children)
+  }, [Selected])
+
+  // useEffect(() => {
+  //   console.log('Boxes', Boxes)
+  // }, [Boxes])
+
+  return (
+    <>
+      <Group ref={groupRef}>{Selected}</Group>
+      {Boxes}
+    </>
+  )
+}
+
+export default function App() {
+  // const { target, setTarget } = useStore()
 
   return (
     <Canvas dpr={[1, 2]} onPointerMissed={() => setTarget(null)}>
-      <Group ref={groupRef}>{Selected}</Group>
-      {Boxes}
+      <Edit />
       {/* {target && <TransformControls object={target} mode={mode} />} */}
       <OrbitControls makeDefault />
     </Canvas>
